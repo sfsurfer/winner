@@ -14,5 +14,4 @@ object Deck {
       Card(face, suit)
     }
   })
-
 }

@@ -2,6 +2,7 @@ package com.danlane.winner
 
 import com.danlane.winner.engine.Game
 import com.danlane.winner.model.Player
+import com.danlane.winner.ui.CommandLine
 
 object Main extends App {
   println("Starting Winner!!")
@@ -16,7 +17,9 @@ object Main extends App {
   }.toVector
 
   println("Starting Game!!")
-  var result = Game.playGame(players)
+  val ui = new CommandLine()
+  val game = new Game(ui)
+  game.startGame(players)
 
   //
 }

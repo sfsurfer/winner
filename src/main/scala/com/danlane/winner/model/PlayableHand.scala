@@ -8,7 +8,7 @@ trait PlayableHand {
   // Returns true if cards passed in beats this hand
   def isBeatenBy(other: Vector[Card]): Boolean = other match {
     case c if PlayableHand.Bomb.validate(c) => true
-    case c if validate(c) => c.head.value > cards.head.value
+    case c if validate(c) => c.maxBy(_.value).value > cards.maxBy(_.value).value
     case _ => false
   }
 
@@ -43,6 +43,7 @@ object PlayableHand {
     def validate(cards: Vector[Card]): Boolean = cards.length == 3 && cards.count(_.face == cards.head.face) == 3
   }
 
+  /** BOMB */
   sealed abstract case class Bomb(cards: Vector[Card]) extends PlayableHand {
     override def validate(cards: Vector[Card]): Boolean = Bomb.validate(cards)
 
@@ -55,7 +56,7 @@ object PlayableHand {
     def validate(cards: Vector[Card]): Boolean =  cards.length == 4 && cards.count(_.face == cards.head.face) == 4
   }
 
-  // STRAIGHT
+  /** STRAIGHT */
   sealed abstract case class Straight(cards: Vector[Card]) extends PlayableHand {
     override def validate(cards: Vector[Card]): Boolean = Straight.validate(cards)
     // Returns true if cards passed in beats this hand
@@ -82,7 +83,7 @@ object PlayableHand {
     } else 0
   }
 
-  // STRAIGHT FLUSH
+  /** STRAIGHT FLUSH */
   sealed abstract case class StraightFlush(cards: Vector[Card]) extends PlayableHand {
     override def validate(cards: Vector[Card]): Boolean = StraightFlush.validate(cards)
 
@@ -97,7 +98,7 @@ object PlayableHand {
     def validate(cards: Vector[Card]): Boolean = isStraight(cards) && cards.count(_.suit == cards.head.suit) == cards.length
   }
 
-  // DOUBLE STRAIGHT
+  /** DOUBLE STRAIGHT */
   sealed abstract case class DoubleStraight(cards: Vector[Card]) extends PlayableHand {
     override def validate(cards: Vector[Card]): Boolean = DoubleStraight.validate(cards)
 
@@ -108,6 +109,7 @@ object PlayableHand {
       case _ => false
     }
   }
+
   object DoubleStraight {
     def validate(cards: Vector[Card]): Boolean = {
       cards match {
@@ -132,8 +134,15 @@ object PlayableHand {
       }.forall(_ == true)
   }
 
+  /** FULL HOUSE  */
   sealed abstract case class FullHouse(cards: Vector[Card]) extends PlayableHand {
     override def validate(cards: Vector[Card]): Boolean = FullHouse.validate(cards)
+    override def isBeatenBy(other: Vector[Card]): Boolean = other match {
+      case c if Bomb.validate(c) => true
+      case c if validate(c) => new FullHouse(c) {}.value > value
+    }
+
+    val value: Int = cards.groupBy(_.face).filter(_._2.length == 3).keys.head.singleValue
   }
   object FullHouse {
     def validate(cards: Vector[Card]): Boolean =
@@ -144,6 +153,7 @@ object PlayableHand {
       }
   }
 
+  /** INSTANTIATION */
   def playHand(cards: Vector[Card]): Option[PlayableHand] = {
     cards match {
       case c if StraightFlush.validate(c) => Some(new StraightFlush(c) {})
