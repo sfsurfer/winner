@@ -41,11 +41,19 @@ class GameSpec extends FlatSpec with Matchers {
 
   val mockUI = new UI {
 
-    def update(state: GameState): Unit = ()
+    override def displayPlay(play: PlayableHand): Unit = ()
 
-    def getNextPlay(state: GameState): Option[PlayableHand] = PlayableHand.playHand(Vector(Card(Three, Diamond)))
+    override def showSwappedCards(winnersCard: Card, losersCard: Card): Unit = ()
 
-    def getWinnersSwapCard(state: GameState): Option[Card] = state.winner.flatMap(_.hand.flatMap(_.lowestCard))
+    override def gameOverDisplay(state: GameState): GameState = state
+
+    override def promptToContinue: Boolean = false
+
+    override def update(state: GameState): Unit = ()
+
+    override def getNextPlay(state: GameState): Option[PlayableHand] = PlayableHand.playHand(Vector(Card(Three, Diamond)))
+
+    override def getWinnersSwapCard(state: GameState): Option[Card] = state.winner.flatMap(_.hand.flatMap(_.lowestCard))
   }
 
   val game = new Game(mockUI)
